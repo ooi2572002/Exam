@@ -12,12 +12,12 @@ public class StudentUpdateExecuteAction extends Action {
     @Override
     public void execute(HttpServletRequest req, HttpServletResponse res) throws Exception {
 
-        String student_no = req.getParameter("student_No");
-        String student_name = req.getParameter("student_Name");
-        int ent_year = Integer.parseInt(req.getParameter("Ent_Year"));
-        String class_num = req.getParameter("Class_num");
+        String student_no = req.getParameter("no");
+        String student_name = req.getParameter("name");
+        int ent_year = Integer.parseInt(req.getParameter("ent_year"));
+        String class_num = req.getParameter("class_num");
         boolean isAttend = Boolean.parseBoolean(req.getParameter("isAttend"));
-        String school_cd = req.getParameter("School_cd");
+        String school_cd = req.getParameter("school_cd");
 
         // 入力保持用 Student
         Student student = new Student();

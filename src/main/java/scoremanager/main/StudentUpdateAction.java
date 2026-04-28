@@ -1,5 +1,6 @@
 package scoremanager.main;
 
+
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,6 +46,7 @@ public class StudentUpdateAction extends Action {
         req.setAttribute("student", student);
         req.setAttribute("class_num_set", classNumList);
         req.setAttribute("ent_year_set", entYearSet);
+
 
         req.getRequestDispatcher("student_update.jsp").forward(req, res);
     }

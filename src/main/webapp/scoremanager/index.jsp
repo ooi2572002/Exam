@@ -10,7 +10,7 @@
 //ログインページにリダイレクト
 location.href="/ScoreManager/scoremanager/Login.action";
 </script>
-</head>
+</head>	
 <body>
 
 </body>

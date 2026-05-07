@@ -1,7 +1,5 @@
 package scoremanager.main;
 
-import java.util.List;
-
 import bean.Subject;
 import bean.Teacher;
 import dao.SubjectDao;
@@ -10,21 +8,22 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import tool.Action;
 
-public class SubjectListAction extends Action {
-
+public class SubjectDeleteAction extends Action {
     @Override
     public void execute(HttpServletRequest req, HttpServletResponse res) throws Exception {
 
         HttpSession session = req.getSession();
-        Teacher teacher = (Teacher)session.getAttribute("user");
+        Teacher teacher = (Teacher) session.getAttribute("user");
+
+        String subjectCd = req.getParameter("subject_cd");
 
         SubjectDao subjectDao = new SubjectDao();
 
-        // ログインユーザの学校コードで科目一覧を取得
-        List<Subject> subjects = subjectDao.filter(teacher.getSchool());
+        // ★ 引数の順番を DAO に合わせて修正
+        Subject subject = subjectDao.get(teacher.getSchool(), subjectCd);
 
-        req.setAttribute("subjects", subjects);
+        req.setAttribute("subject", subject);
 
-        req.getRequestDispatcher("subject_list.jsp").forward(req, res);
+        req.getRequestDispatcher("subject_delete.jsp").forward(req, res);
     }
 }

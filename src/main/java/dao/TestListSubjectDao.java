@@ -14,9 +14,8 @@ import bean.TestListSubject;
 
 public class TestListSubjectDao extends Dao {
 
-    public List<TestListSubject> filter(int entYear, String classNum, String subject) throws Exception {
+    public List<TestListSubject> filter(int entYear, String classNum, String subjectCd) throws Exception {
 
-        // 学生ごとに複数回分をまとめるため LinkedHashMap で順序を保持
         Map<String, TestListSubject> map = new LinkedHashMap<>();
 
         Connection connection = getConnection();
@@ -25,25 +24,24 @@ public class TestListSubjectDao extends Dao {
 
         try {
             statement = connection.prepareStatement(
-                "select s.ent_year, s.student_no, s.student_name, t.class_num, t.num, t.point" +
+                "select s.ent_year, s.student_no, s.student_name, t.class_num, t.no, t.point" +
                 " from test t" +
                 " join student s on t.student_no = s.student_no" +
                 " where s.ent_year = ?" +
                 " and t.class_num = ?" +
-                " and t.subject = ?" +
-                " order by t.class_num, s.student_no, t.num"
+                " and t.subject_cd = ?" +
+                " order by t.class_num, s.student_no, t.no"
             );
 
             statement.setInt(1, entYear);
             statement.setString(2, classNum);
-            statement.setString(3, subject);
+            statement.setString(3, subjectCd);
 
             resultSet = statement.executeQuery();
 
             while (resultSet.next()) {
                 String studentNo = resultSet.getString("student_no");
 
-                // 同じ学生のレコードが複数行（回数ごと）来るので、初回のみBeanを生成
                 if (!map.containsKey(studentNo)) {
                     TestListSubject bean = new TestListSubject();
                     bean.setEntYear(resultSet.getInt("ent_year"));
@@ -54,8 +52,7 @@ public class TestListSubjectDao extends Dao {
                     map.put(studentNo, bean);
                 }
 
-                // 回数→点数 をMapに追加
-                int num   = resultSet.getInt("num");
+                int num   = resultSet.getInt("no");
                 int point = resultSet.getInt("point");
                 map.get(studentNo).getPoints().put(num, point);
             }
@@ -63,20 +60,8 @@ public class TestListSubjectDao extends Dao {
         } catch (Exception e) {
             throw e;
         } finally {
-            if (statement != null) {
-                try {
-                    statement.close();
-                } catch (SQLException sqle) {
-                    throw sqle;
-                }
-            }
-            if (connection != null) {
-                try {
-                    connection.close();
-                } catch (SQLException sqle) {
-                    throw sqle;
-                }
-            }
+            if (statement != null) { try { statement.close(); } catch (SQLException sqle) { throw sqle; } }
+            if (connection != null) { try { connection.close(); } catch (SQLException sqle) { throw sqle; } }
         }
 
         return new ArrayList<>(map.values());

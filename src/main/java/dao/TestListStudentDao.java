@@ -21,23 +21,22 @@ public class TestListStudentDao extends Dao {
 
         try {
             statement = connection.prepareStatement(
-                "select sub.subject_name, t.subject as subject_cd, t.num, t.point" +
+                "select sub.subject_name, t.subject_cd, t.no, t.point" +
                 " from test t" +
-                " join subject sub on t.subject = sub.subject_cd" +
+                " join subject sub on t.subject_cd = sub.subject_cd and t.school_cd = sub.school_cd" +
                 " where t.student_no = ?" +
                 " and t.point is not null" +
-                " order by t.subject, t.num"
+                " order by t.subject_cd, t.no"
             );
 
             statement.setString(1, studentNo);
-
             resultSet = statement.executeQuery();
 
             while (resultSet.next()) {
                 TestListStudent bean = new TestListStudent();
                 bean.setSubjectName(resultSet.getString("subject_name"));
                 bean.setSubjectCd(resultSet.getString("subject_cd"));
-                bean.setNum(resultSet.getInt("num"));
+                bean.setNum(resultSet.getInt("no"));
                 bean.setPoint(resultSet.getInt("point"));
                 list.add(bean);
             }
@@ -45,26 +44,13 @@ public class TestListStudentDao extends Dao {
         } catch (Exception e) {
             throw e;
         } finally {
-            if (statement != null) {
-                try {
-                    statement.close();
-                } catch (SQLException sqle) {
-                    throw sqle;
-                }
-            }
-            if (connection != null) {
-                try {
-                    connection.close();
-                } catch (SQLException sqle) {
-                    throw sqle;
-                }
-            }
+            if (statement != null) { try { statement.close(); } catch (SQLException sqle) { throw sqle; } }
+            if (connection != null) { try { connection.close(); } catch (SQLException sqle) { throw sqle; } }
         }
 
         return list;
     }
 
-    // 画面上部「氏名：〇〇（学生番号）」の表示用
     public String getStudentName(String studentNo) throws Exception {
 
         Connection connection = getConnection();
@@ -76,9 +62,7 @@ public class TestListStudentDao extends Dao {
             statement = connection.prepareStatement(
                 "select student_name from student where student_no = ?"
             );
-
             statement.setString(1, studentNo);
-
             resultSet = statement.executeQuery();
 
             if (resultSet.next()) {
@@ -88,20 +72,8 @@ public class TestListStudentDao extends Dao {
         } catch (Exception e) {
             throw e;
         } finally {
-            if (statement != null) {
-                try {
-                    statement.close();
-                } catch (SQLException sqle) {
-                    throw sqle;
-                }
-            }
-            if (connection != null) {
-                try {
-                    connection.close();
-                } catch (SQLException sqle) {
-                    throw sqle;
-                }
-            }
+            if (statement != null) { try { statement.close(); } catch (SQLException sqle) { throw sqle; } }
+            if (connection != null) { try { connection.close(); } catch (SQLException sqle) { throw sqle; } }
         }
 
         return studentName;

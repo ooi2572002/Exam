@@ -8,7 +8,7 @@
     <c:param name="content">
         <section class="me-4">
 
-            <h2 class="h3 mb-3 fw-normal bg-secondary bg-opacity-10 py-2 px-4">科目管理</h2>
+            <h2 class="h3 mb-3 fw-normal bg-secondary bg-opacity-10 py-2 px-4">科目管理一覧</h2>
 
             <div class="my-2 text-end px-4">
                 <a href="SubjectCreate.action">新規登録</a>
@@ -43,7 +43,7 @@
 
                     <c:otherwise>
                         <tr>
-                            <td colspan="4" class="text-center text-muted"></td>
+                            <td colspan="4" class="text-center text-muted">科目情報が存在しません。</td>
                         </tr>
                     </c:otherwise>
 

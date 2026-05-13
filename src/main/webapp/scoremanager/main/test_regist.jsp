@@ -2,7 +2,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"
     import="java.util.*,java.time.*,bean.*,dao.*" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
-<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <%
     Teacher teacher = (Teacher) session.getAttribute("user");
 
@@ -44,31 +43,40 @@
         String subjectParam = request.getParameter("subject");
         String countParam   = request.getParameter("count");
         String[] registNos  = request.getParameterValues("regist");
-        // フォームから戻って表示する際の値を復元
         if (subjectParam != null) f3 = subjectParam;
         if (countParam   != null) f4 = countParam;
 
         if (subjectParam != null && countParam != null && registNos != null) {
             int num = Integer.parseInt(countParam);
             TestDao testDao = new TestDao();
+
             for (String sno : registNos) {
                 String pointStr = request.getParameter("point_" + sno);
                 Integer point = null;
                 if (pointStr != null && !pointStr.trim().isEmpty()) {
                     try {
                         int p = Integer.parseInt(pointStr.trim());
-                        if (p < 0 || p > 100) { errors.put(sno, "0〜100で入力してください"); continue; }
+                        if (p < 0 || p > 100) {
+                            errors.put(sno, "0〜100の範囲で入力してください");
+                            continue;
+                        }
                         point = p;
                     } catch (NumberFormatException e) {
-                        errors.put(sno, "数値を入力してください"); continue;
+                        errors.put(sno, "数値を入力してください");
+                        continue;
                     }
                 }
-                testDao.save(sno, teacher.getSchool().getSchoolCd(), subjectParam, num, point);
+                if (errors.isEmpty()) {
+                    testDao.save(sno, teacher.getSchool().getSchoolCd(), subjectParam, num, point);
+                }
             }
+
             if (errors.isEmpty()) {
                 response.sendRedirect("test_regist_done.jsp");
                 return;
             }
+
+            // エラー時は一覧を再取得して再表示
             int entYear = (f1 != null && !f1.isEmpty() && !f1.equals("0")) ? Integer.parseInt(f1) : 0;
             tests = new TestDao().filterForRegist(teacher.getSchool().getSchoolCd(), entYear, f2, subjectParam, num);
             Subject sub = subjectDao.get(teacher.getSchool(), subjectParam);
@@ -91,60 +99,62 @@
     <c:param name="title">得点管理システム</c:param>
     <c:param name="content">
         <section class="me-4">
-            <h2 class="h3 mb-3 fw-normal bg-secondary bg-opacity-10 py-2 px-4">成績管理</h2>
+            <h2 class="h3 mb-3 fw-normal bg-secondary bg-opacity-10 py-2 px-4">成績管理一覧</h2>
 
-            <form method="get" action="TestRegistExecute.action">
+            <form method="get" action="TestRegist.action" class="px-3 mb-3">
                 <input type="hidden" name="action" value="search">
-                <div class="border mx-3 mb-3 p-3 rounded">
-                    <div class="row mb-2 align-items-end">
-                        <div class="col-3">
-                            <label class="form-label">入学年度</label>
-                            <select class="form-select" name="f1">
-                                <option value="0">--------</option>
-                                <c:forEach var="y" items="${entYearSet}">
-                                    <option value="${y}" <c:if test="${y == f1}">selected</c:if>>${y}</option>
-                                </c:forEach>
-                            </select>
-                            <c:if test="${not empty errors.f1}"><div class="text-danger small">${errors.f1}</div></c:if>
-                        </div>
-                        <div class="col-3">
-                            <label class="form-label">クラス</label>
-                            <select class="form-select" name="f2">
-                                <option value="0">--------</option>
-                                <c:forEach var="cn" items="${classNumSet}">
-                                    <option value="${cn}" <c:if test="${cn == f2}">selected</c:if>>${cn}</option>
-                                </c:forEach>
-                            </select>
-                            <c:if test="${not empty errors.f2}"><div class="text-danger small">${errors.f2}</div></c:if>
-                        </div>
-                        <div class="col-3">
-                            <label class="form-label">科目</label>
-                            <select class="form-select" name="f3">
-                                <option value="0">--------</option>
-                                <c:forEach var="s" items="${subjects}">
-                                    <option value="${s.subjectCd}" <c:if test="${s.subjectCd == f3}">selected</c:if>>${s.subjectName}</option>
-                                </c:forEach>
-                            </select>
-                            <c:if test="${not empty errors.f3}"><div class="text-danger small">${errors.f3}</div></c:if>
-                        </div>
-                        <div class="col-2">
-                            <label class="form-label">回数</label>
-                            <select class="form-select" name="f4">
-                                <option value="0">--------</option>
-                                <option value="1" <c:if test="${f4 == '1'}">selected</c:if>>1</option>
-                                <option value="2" <c:if test="${f4 == '2'}">selected</c:if>>2</option>
-                            </select>
-                            <c:if test="${not empty errors.f4}"><div class="text-danger small">${errors.f4}</div></c:if>
-                        </div>
-                        <div class="col-1">
-                            <button class="btn btn-secondary w-100" style="margin-top:28px">検索</button>
-                        </div>
+                <div class="border p-3 rounded mb-2">
+                <div class="row mb-1">
+                    <div class="col-auto" style="width:120px"><label class="form-label mb-1">入学年度</label></div>
+                    <div class="col-auto" style="width:100px"><label class="form-label mb-1">クラス</label></div>
+                    <div class="col-auto" style="width:200px"><label class="form-label mb-1">科目</label></div>
+                    <div class="col-auto" style="width:100px"><label class="form-label mb-1">回数</label></div>
+                </div>
+                <div class="row align-items-start">
+                    <div class="col-auto">
+                        <select class="form-select form-select-sm" name="f1" style="width:120px">
+                            <option value="0">--------</option>
+                            <c:forEach var="y" items="${entYearSet}">
+                                <option value="${y}" <c:if test="${y == f1}">selected</c:if>>${y}</option>
+                            </c:forEach>
+                        </select>
+                        <c:if test="${not empty errors.f1}"><div class="text-danger small">${errors.f1}</div></c:if>
                     </div>
+                    <div class="col-auto">
+                        <select class="form-select form-select-sm" name="f2" style="width:100px">
+                            <option value="0">--------</option>
+                            <c:forEach var="cn" items="${classNumSet}">
+                                <option value="${cn}" <c:if test="${cn == f2}">selected</c:if>>${cn}</option>
+                            </c:forEach>
+                        </select>
+                        <c:if test="${not empty errors.f2}"><div class="text-danger small">${errors.f2}</div></c:if>
+                    </div>
+                    <div class="col-auto">
+                        <select class="form-select form-select-sm" name="f3" style="width:200px">
+                            <option value="0">--------</option>
+                            <c:forEach var="s" items="${subjects}">
+                                <option value="${s.subjectCd}" <c:if test="${s.subjectCd == f3}">selected</c:if>>${s.subjectName}</option>
+                            </c:forEach>
+                        </select>
+                        <c:if test="${not empty errors.f3}"><div class="text-danger small">${errors.f3}</div></c:if>
+                    </div>
+                    <div class="col-auto">
+                        <select class="form-select form-select-sm" name="f4" style="width:100px">
+                            <option value="0">--------</option>
+                            <option value="1" <c:if test="${f4 == '1'}">selected</c:if>>1</option>
+                            <option value="2" <c:if test="${f4 == '2'}">selected</c:if>>2</option>
+                        </select>
+                        <c:if test="${not empty errors.f4}"><div class="text-danger small">${errors.f4}</div></c:if>
+                    </div>
+                    <div class="col-auto">
+                        <button class="btn btn-secondary btn-sm">検索</button>
+                    </div>
+                </div>
                 </div>
             </form>
 
             <c:if test="${not empty tests}">
-                <form method="post" action="TestRegistExecute.action">
+                <form method="post" action="TestRegist.action">
                     <input type="hidden" name="action" value="regist">
                     <input type="hidden" name="f1" value="${f1}">
                     <input type="hidden" name="f2" value="${f2}">
@@ -177,7 +187,7 @@
                             </c:forEach>
                         </tbody>
                     </table>
-                    <div class="text-end px-3 mb-3">
+                    <div class="px-3 mb-3">
                         <button type="submit" class="btn btn-primary px-4">登録して終了</button>
                     </div>
                 </form>

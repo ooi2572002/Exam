@@ -68,7 +68,6 @@ public class TestDao extends Dao {
     public List<Map<String, Object>> filterForRegist(String schoolCd, int entYear, String classNum, String subjectCd, int num) throws Exception {
 
         List<Map<String, Object>> list = new ArrayList<>();
-
         Connection connection = getConnection();
         PreparedStatement stmt = null;
         ResultSet rs = null;
@@ -109,5 +108,70 @@ public class TestDao extends Dao {
         }
 
         return list;
+    }
+
+    /**
+     * 学生×科目の成績を全件取得（削除確認用）
+     */
+    public List<Map<String, Object>> filterForDelete(String studentNo, String subjectCd, String schoolCd) throws Exception {
+
+        List<Map<String, Object>> list = new ArrayList<>();
+        Connection connection = getConnection();
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+
+        try {
+            stmt = connection.prepareStatement(
+                "SELECT no, point FROM test" +
+                " WHERE student_no = ? AND subject_cd = ? AND school_cd = ?" +
+                " ORDER BY no"
+            );
+            stmt.setString(1, studentNo);
+            stmt.setString(2, subjectCd);
+            stmt.setString(3, schoolCd);
+
+            rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                Map<String, Object> row = new LinkedHashMap<>();
+                row.put("no",    rs.getString("no"));
+                int point = rs.getInt("point");
+                row.put("point", rs.wasNull() ? null : point);
+                list.add(row);
+            }
+
+        } finally {
+            if (rs != null) { try { rs.close(); } catch (SQLException e) { throw e; } }
+            if (stmt != null) { try { stmt.close(); } catch (SQLException e) { throw e; } }
+            if (connection != null) { try { connection.close(); } catch (SQLException e) { throw e; } }
+        }
+
+        return list;
+    }
+
+    /**
+     * 学生×科目の成績を全件削除
+     */
+    public boolean deleteAll(String studentNo, String subjectCd, String schoolCd) throws Exception {
+
+        Connection connection = getConnection();
+        PreparedStatement stmt = null;
+        int count = 0;
+
+        try {
+            stmt = connection.prepareStatement(
+                "DELETE FROM test WHERE student_no = ? AND subject_cd = ? AND school_cd = ?"
+            );
+            stmt.setString(1, studentNo);
+            stmt.setString(2, subjectCd);
+            stmt.setString(3, schoolCd);
+            count = stmt.executeUpdate();
+
+        } finally {
+            if (stmt != null) { try { stmt.close(); } catch (SQLException e) { throw e; } }
+            if (connection != null) { try { connection.close(); } catch (SQLException e) { throw e; } }
+        }
+
+        return count > 0;
     }
 }
